@@ -427,6 +427,7 @@ def main():
             #         os.unlink(temp_file_path)
                     
             # Audio recorder
+                        # Audio recorder
             audio_bytes = audio_recorder(
                 text="Click to record",
                 recording_color="#e8b62c",
@@ -440,14 +441,14 @@ def main():
                 st.audio(audio_bytes, format="audio/wav")
                 
                 if st.button("Classify Recorded Audio", type="primary"):
-                    with st.spinner("Processing recorded audio..."):
-                        prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
-                            temp_file_path, model, scaler, speaker_profiles, is_file=True, is_recording=True  # TRUE = Recording mode
-                        )
+                    # BUAT temp file dari audio_bytes yang baru direkam
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
+                        tmp_file.write(audio_bytes)
+                        temp_file_path = tmp_file.name
                     
                     with st.spinner("Processing recorded audio..."):
                         prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
-                            temp_file_path, model, scaler, speaker_profiles, is_file=True
+                            temp_file_path, model, scaler, speaker_profiles, is_file=True, is_recording=True  # TRUE = Recording mode
                         )
                     
                     process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info, model, col2)
