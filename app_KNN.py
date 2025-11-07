@@ -151,11 +151,11 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
         # LEBIH LONGGAR untuk browser recording
         distance_threshold = 0.50
         gap_threshold = 0.02
-        similarity_threshold = 0.85
+        similarity_threshold = 0.88
         st.sidebar.info("**RECORDING MODE**")
     else:
         # LEBIH KETAT untuk file upload
-        distance_threshold = 0.25
+        distance_threshold = 0.20
         gap_threshold = 0.05
         similarity_threshold = 0.88
         st.sidebar.info("**UPLOAD MODE**")
@@ -219,20 +219,20 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     
     return is_registered, best_speaker, similarities[best_speaker]
 
-def main():
-    model, scaler, model_loaded = load_model()
-    speaker_profiles, profiles_loaded = load_speaker_profiles()
+# def main():
+#     model, scaler, model_loaded = load_model()
+#     speaker_profiles, profiles_loaded = load_speaker_profiles()
     
-    st.sidebar.header("🔍 System Debug Info")
-    st.sidebar.write(f"**Model Loaded:** {'✅' if model_loaded else '❌'}")
-    st.sidebar.write(f"**Profiles Loaded:** {'✅' if profiles_loaded else '❌'}")
+#     st.sidebar.header("🔍 System Debug Info")
+#     st.sidebar.write(f"**Model Loaded:** {'✅' if model_loaded else '❌'}")
+#     st.sidebar.write(f"**Profiles Loaded:** {'✅' if profiles_loaded else '❌'}")
     
-    if profiles_loaded:
-        st.sidebar.write(f"**Registered Speakers:** {list(speaker_profiles.keys())}")
-        st.sidebar.write(f"**Total Speakers:** {len(speaker_profiles)}")
+#     if profiles_loaded:
+#         st.sidebar.write(f"**Registered Speakers:** {list(speaker_profiles.keys())}")
+#         st.sidebar.write(f"**Total Speakers:** {len(speaker_profiles)}")
     
-    if not model_loaded:
-        st.stop()
+#     if not model_loaded:
+#         st.stop()
     
 
 
