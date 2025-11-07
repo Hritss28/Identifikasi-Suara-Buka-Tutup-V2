@@ -196,9 +196,7 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     # Validasi berdasarkan jarak
     sorted_distances = sorted(distances.values())
     gap_distance = sorted_distances[1] - sorted_distances[0] if len(sorted_distances) > 1 else 0.1
-    gap_percentage = gap_distance / sorted_distances[0] if sorted_distances[0] > 0 else 0
-    min_gap_percentage = 0.15
-    st.sidebar.write(f"  - Gap Percentage: {gap_percentage:.3f} (harus > {min_gap_percentage})")
+
     st.sidebar.write(f"**HASIL:**")
     st.sidebar.write(f"  - Best Speaker: {best_speaker}")
     st.sidebar.write(f"  - Best Distance: {best_distance:.6f} (harus < {distance_threshold})")
@@ -209,15 +207,13 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     check1 = best_distance < distance_threshold
     check2 = gap_distance > gap_threshold
     check3 = similarities[best_speaker] > similarity_threshold
-    check4 = gap_percentage > min_gap_percentage
     
     st.sidebar.write(f"**CHECKS:**")
     st.sidebar.write(f"  - Distance Check: {'✅' if check1 else '❌'} ({best_distance:.3f} < {distance_threshold})")
     st.sidebar.write(f"  - Gap Check: {'✅' if check2 else '❌'} ({gap_distance:.3f} > {gap_threshold})")  
     st.sidebar.write(f"  - Similarity Check: {'✅' if check3 else '❌'} ({similarities[best_speaker]:.3f} > {similarity_threshold})")
-    st.sidebar.write(f"  - Gap % Check: {'✅' if check4 else '❌'} ({gap_percentage:.3f} > {min_gap_percentage})")
     
-    is_registered = check1 and check2 and check3 and check4
+    is_registered = check1 and check2 and check3
     
     st.sidebar.write(f"**DECISION: {'✅ ACCEPTED' if is_registered else '❌ REJECTED'}**")
     
