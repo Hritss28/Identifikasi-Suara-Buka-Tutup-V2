@@ -142,7 +142,7 @@ def extract_speaker_features(y, sr=22050):
     return speaker_features
 
 
-def verify_speaker(y, sr, speaker_profiles, threshold=0.55): 
+def verify_speaker(y, sr, speaker_profiles, threshold=0.25): 
     if speaker_profiles is None:
         st.sidebar.error("SPEAKER PROFILES NULL - SEMUA SUARA DITERIMA!")
         return False, "unknown", 0.0
