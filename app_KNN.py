@@ -148,12 +148,11 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
         return False, "unknown", 0.0
     
     if is_recording:
-        distance_threshold = 0.45
+        distance_threshold = 0.55
         gap_threshold = 0.02
-        similarity_threshold = 0.80
+        similarity_threshold = 0.85
         st.sidebar.info("**RECORDING MODE**")
     else:
-        # LEBIH KETAT untuk file upload
         distance_threshold = 0.20
         gap_threshold = 0.05
         similarity_threshold = 0.88
