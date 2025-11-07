@@ -149,7 +149,7 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     
     if is_recording:
         # LEBIH LONGGAR untuk browser recording
-        distance_threshold = 0.45
+        distance_threshold = 0.50
         gap_threshold = 0.02
         similarity_threshold = 0.85
         st.sidebar.info("**RECORDING MODE**")
