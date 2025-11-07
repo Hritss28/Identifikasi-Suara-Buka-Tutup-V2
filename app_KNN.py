@@ -142,10 +142,24 @@ def extract_speaker_features(y, sr=22050):
     return speaker_features
 
 
-def verify_speaker(y, sr, speaker_profiles, threshold=0.25): 
+def verify_speaker(y, sr, speaker_profiles, is_recording=False): 
     if speaker_profiles is None:
         st.sidebar.error("SPEAKER PROFILES NULL - SEMUA SUARA DITERIMA!")
         return False, "unknown", 0.0
+    
+    # ADAPTIVE THRESHOLD berdasarkan input method
+    if is_recording:
+        # LEBIH LONGGAR untuk browser recording
+        distance_threshold = 0.55
+        gap_threshold = 0.02
+        similarity_threshold = 0.85
+        st.sidebar.info("**RECORDING MODE**")
+    else:
+        # LEBIH KETAT untuk file upload
+        distance_threshold = 0.25
+        gap_threshold = 0.05
+        similarity_threshold = 0.88
+        st.sidebar.info("**UPLOAD MODE**")
     
     test_features = extract_speaker_features(y, sr)
     
@@ -184,17 +198,26 @@ def verify_speaker(y, sr, speaker_profiles, threshold=0.25):
     sorted_distances = sorted(distances.values())
     gap_distance = sorted_distances[1] - sorted_distances[0] if len(sorted_distances) > 1 else 0.1
     
-    # DEBUG: Tampilkan hasil akhir
+    # DEBUG: Tampilkan hasil akhir dengan threshold yang sesuai
     st.sidebar.write(f"**HASIL:**")
     st.sidebar.write(f"  - Best Speaker: {best_speaker}")
-    st.sidebar.write(f"  - Best Distance: {best_distance:.6f}")
-    st.sidebar.write(f"  - Gap Distance: {gap_distance:.6f}")
-    st.sidebar.write(f"  - Threshold: {threshold}")
-    st.sidebar.write(f"  - Best Similarity: {similarities[best_speaker]:.6f}")
+    st.sidebar.write(f"  - Best Distance: {best_distance:.6f} (harus < {distance_threshold})")
+    st.sidebar.write(f"  - Gap Distance: {gap_distance:.6f} (harus > {gap_threshold})")
+    st.sidebar.write(f"  - Best Similarity: {similarities[best_speaker]:.6f} (harus > {similarity_threshold})")
     
-    is_registered = (best_distance < threshold) and (gap_distance > 0.05) and (similarities[best_speaker] > 0.88)
+    # DECISION dengan threshold yang berbeda
+    check1 = best_distance < distance_threshold
+    check2 = gap_distance > gap_threshold
+    check3 = similarities[best_speaker] > similarity_threshold
     
-    st.sidebar.write(f"**DECISION: {'ACCEPTED' if is_registered else '❌ REJECTED'}**")
+    st.sidebar.write(f"**CHECKS:**")
+    st.sidebar.write(f"  - Distance Check: {'✅' if check1 else '❌'} ({best_distance:.3f} < {distance_threshold})")
+    st.sidebar.write(f"  - Gap Check: {'✅' if check2 else '❌'} ({gap_distance:.3f} > {gap_threshold})")  
+    st.sidebar.write(f"  - Similarity Check: {'✅' if check3 else '❌'} ({similarities[best_speaker]:.3f} > {similarity_threshold})")
+    
+    is_registered = check1 and check2 and check3
+    
+    st.sidebar.write(f"**DECISION: {'✅ ACCEPTED' if is_registered else '❌ REJECTED'}**")
     
     return is_registered, best_speaker, similarities[best_speaker]
 
@@ -237,7 +260,7 @@ def preprocess_audio(y, sr, target_sr=22050):
 
 
 
-def predict_audio(audio_data, model, scaler, speaker_profiles=None, is_file=True):
+def predict_audio(audio_data, model, scaler, speaker_profiles=None, is_file=True, is_recording=False):
     try:
         if is_file:
             y, sr = librosa.load(audio_data, sr=22050)
@@ -255,7 +278,8 @@ def predict_audio(audio_data, model, scaler, speaker_profiles=None, is_file=True
         else:
             st.sidebar.success(f"Speaker profiles available: {len(speaker_profiles)} speakers")
 
-        is_registered, speaker_id, similarity = verify_speaker(y_processed, sr_processed, speaker_profiles)
+        # PASS parameter is_recording ke verify_speaker
+        is_registered, speaker_id, similarity = verify_speaker(y_processed, sr_processed, speaker_profiles, is_recording)
         
         st.sidebar.write("**VERIFICATION RESULT:**")
         st.sidebar.write(f"  - Is Registered: {is_registered}")
@@ -263,10 +287,10 @@ def predict_audio(audio_data, model, scaler, speaker_profiles=None, is_file=True
         st.sidebar.write(f"  - Similarity: {similarity:.6f}")
         
         if not is_registered:
-            st.sidebar.error("ACCESS DENIED - Speaker not registered")
+            st.sidebar.error("🚫 ACCESS DENIED - Speaker not registered")
             return "unregistered", [0.0, 0.0], None, y_processed, sr_processed, speaker_id, similarity, None
         
-        st.sidebar.success("ACCESS GRANTED - Proceeding to classification")
+        st.sidebar.success("✅ ACCESS GRANTED - Proceeding to classification")
         
         # Extract features for classification
         features = extract_only_selected_features(y_processed, sr_processed)
@@ -373,7 +397,7 @@ def main():
                 if st.button("Classify Audio", type="primary"):
                     with st.spinner("Processing audio..."):
                         prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
-                            temp_file_path, model, scaler, speaker_profiles, is_file=True
+                            temp_file_path, model, scaler, speaker_profiles, is_file=True, is_recording=False  # FALSE = Upload mode
                         )
                     
                     process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info, model, col2)
@@ -416,9 +440,10 @@ def main():
                 st.audio(audio_bytes, format="audio/wav")
                 
                 if st.button("Classify Recorded Audio", type="primary"):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
-                        tmp_file.write(audio_bytes)
-                        temp_file_path = tmp_file.name
+                    with st.spinner("Processing recorded audio..."):
+                        prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
+                            temp_file_path, model, scaler, speaker_profiles, is_file=True, is_recording=True  # TRUE = Recording mode
+                        )
                     
                     with st.spinner("Processing recorded audio..."):
                         prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
