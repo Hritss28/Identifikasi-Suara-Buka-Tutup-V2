@@ -150,8 +150,8 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     if is_recording:
         # LEBIH LONGGAR untuk browser recording
         distance_threshold = 0.50
-        gap_threshold = 0.02
-        similarity_threshold = 0.88
+        gap_threshold = 0.05
+        similarity_threshold = 0.85
         st.sidebar.info("**RECORDING MODE**")
     else:
         # LEBIH KETAT untuk file upload
