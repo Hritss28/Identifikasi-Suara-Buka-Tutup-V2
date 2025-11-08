@@ -400,8 +400,7 @@ def main():
             st.subheader("Record Your Voice")
             st.info("Klik tombol Start/Record di bawah, bicara selama 1-3 detik, lalu klik stop")
 
-            # wav_audio_data = st_audiorec()
-
+            wav_audio_data = st_audiorec()
             if wav_audio_data is not None:
                 st.audio(wav_audio_data, format='audio/wav')
                 
