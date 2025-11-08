@@ -219,7 +219,7 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     return is_registered, best_speaker, similarities[best_speaker]
 
 
-def preprocess_audio(y, sr, target_sr=22050):
+def preprocess_audio(y, sr, target_sr=22050, is_recording=False):
     if sr != target_sr:
         y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
@@ -234,8 +234,26 @@ def preprocess_audio(y, sr, target_sr=22050):
     # Normalisasi
     y = y / np.max(np.abs(y) + 1e-6)
     
-    # Noise reduction
-    y[np.abs(y) < 0.005] = 0.0
+    if is_recording:
+        y[np.abs(y) < 0.008] = 0.0  # Hapus noise kecil
+
+        try:
+            from scipy.signal import butter, filtfilt
+            def simple_bandpass(data, lowcut=300, highcut=3400, fs=22050, order=3):
+                nyquist = 0.5 * fs
+                low = lowcut / nyquist
+                high = highcut / nyquist
+                if low >= 1 or high >= 1:
+                    return data 
+                b, a = butter(order, [low, high], btype='band')
+                return filtfilt(b, a, data)
+            
+            y = simple_bandpass(y)
+        except:
+            pass  
+            
+    else:
+        y[np.abs(y) < 0.003] = 0.0
     
     return y, sr
 
@@ -249,7 +267,12 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
                 y = librosa.resample(y, orig_sr=sr, target_sr=22050)
                 sr = 22050
     
-        y_processed, sr_processed = preprocess_audio(y, sr)
+        y_processed, sr_processed = preprocess_audio(y, sr, is_recording=is_recording)
+
+        if is_recording:
+            st.sidebar.info("🎙️ RECORDING MODE: Enhanced preprocessing applied")
+        else:
+            st.sidebar.info("📁 UPLOAD MODE: Minimal preprocessing applied")
 
         if speaker_profiles is None:
             st.sidebar.error("SPEAKER PROFILES = NULL")
@@ -257,7 +280,6 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
         else:
             st.sidebar.success(f"Speaker profiles available: {len(speaker_profiles)} speakers")
 
-        # Speaker verification
         is_registered, speaker_id, similarity = verify_speaker(y_processed, sr_processed, speaker_profiles, is_recording)
         
         st.sidebar.write("**VERIFICATION RESULT:**")
@@ -270,18 +292,15 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
             return "unregistered", [0.0, 0.0], None, y_processed, sr_processed, speaker_id, similarity, None
         
         st.sidebar.success("✅ ACCESS GRANTED - Proceeding to classification")
-        
-        # Extract features for classification
+
         features = extract_only_selected_features(y_processed, sr_processed)
         
         feature_order = ['mel_7_std', 'chroma_0_mean', 'mel_6_std', 'stat_skew', 'mel_7_mean']
         X_new = pd.DataFrame([features])[feature_order]
         
-        # Random Forest tanpa scaling - langsung predict
         pred_label = model.predict(X_new)[0]
         pred_proba = model.predict_proba(X_new)[0]
         
-        # Random Forest specific information
         rf_info = {
             'feature_importance': dict(zip(feature_order, model.feature_importances_)),
             'n_estimators': model.n_estimators,
