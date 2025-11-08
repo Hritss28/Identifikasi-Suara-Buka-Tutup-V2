@@ -219,11 +219,24 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     return is_registered, best_speaker, similarities[best_speaker]
 
 
-def preprocess_audio(y, sr, target_sr=22050):
-
+def preprocess_audio(y, sr, target_sr=22050, is_recording=False):
     if sr != target_sr:
         y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
+
+    if is_recording:
+        y[np.abs(y) < 0.01] = 0.0 
+        from scipy.signal import butter, filtfilt
+        def bandpass_filter(data, lowcut=300, highcut=3400, fs=22050, order=5):
+            nyquist = 0.5 * fs
+            low = lowcut / nyquist
+            high = highcut / nyquist
+            b, a = butter(order, [low, high], btype='band')
+            return filtfilt(b, a, data)
+        
+        y = bandpass_filter(y)
+    else:
+        y[np.abs(y) < 0.005] = 0.0
     
     # Durasi 1 detik
     max_len = int(sr * 1.0)
@@ -234,9 +247,6 @@ def preprocess_audio(y, sr, target_sr=22050):
     
     # Normalisasi
     y = y / np.max(np.abs(y) + 1e-6)
-    
-    # Noise reduction (sama seperti training)
-    y[np.abs(y) < 0.005] = 0.0
     
     return y, sr
 
@@ -250,7 +260,11 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
                 y = librosa.resample(y, orig_sr=sr, target_sr=22050)
                 sr = 22050
     
-        y_processed, sr_processed = preprocess_audio(y, sr)
+        y_processed, sr_processed = preprocess_audio(y, sr, is_recording=is_recording)
+
+        if is_recording:
+            st.sidebar.warning("🎙️ RECORDING MODE - Adaptive preprocessing applied")
+            st.sidebar.write(f"Audio amplitude range: {np.min(y_processed):.3f} to {np.max(y_processed):.3f}")
 
         if speaker_profiles is None:
             st.sidebar.error("SPEAKER PROFILES = NULL")
