@@ -484,7 +484,7 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                         confidence_color = "error"
                     
                     if confidence_color == "success":
-                        st.success(f"**Speaker Verified:** {speaker_id}")
+                        # st.success(f"**Speaker Verified:** {speaker_id}")
                         st.success(f"**Similarity:** {similarity:.3f} | {confidence_level}")
                     elif confidence_color == "warning":
                         st.warning(f"**Speaker:** {speaker_id} | Similarity: {similarity:.3f} | {confidence_level}")
