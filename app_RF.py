@@ -270,9 +270,9 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
         y_processed, sr_processed = preprocess_audio(y, sr, is_recording=is_recording)
 
         if is_recording:
-            st.sidebar.info("🎙️ RECORDING MODE: Enhanced preprocessing applied")
+            st.sidebar.info("RECORDING MODE: Enhanced preprocessing applied")
         else:
-            st.sidebar.info("📁 UPLOAD MODE: Minimal preprocessing applied")
+            st.sidebar.info("UPLOAD MODE: Minimal preprocessing applied")
 
         if speaker_profiles is None:
             st.sidebar.error("SPEAKER PROFILES = NULL")
