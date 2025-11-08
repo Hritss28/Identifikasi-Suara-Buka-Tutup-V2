@@ -386,48 +386,48 @@ def main():
             st.subheader("Record Your Voice")
             st.info("Klik tombol Start/Record di bawah, bicara selama 1-3 detik, lalu klik stop")
 
-            wav_audio_data = st_audiorec()
+            # wav_audio_data = st_audiorec()
 
-            if wav_audio_data is not None:
-                st.audio(wav_audio_data, format='audio/wav')
-                
-                if st.button("Classify Recorded Audio", type="primary"):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
-                        tmp_file.write(wav_audio_data)
-                        temp_file_path = tmp_file.name
-                    
-                    with st.spinner("Processing recorded audio..."):
-                        prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, rf_info = predict_audio(
-                            temp_file_path, model, speaker_profiles, is_file=True, is_recording=True 
-                        )
-                    
-                    process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, rf_info, model, col2)
-                    os.unlink(temp_file_path)
-            
-            # audio_bytes = audio_recorder(
-            #     text="Click to record",
-            #     recording_color="#e8b62c",
-            #     neutral_color="#6aa36f",
-            #     icon_name="microphone-lines",
-            #     icon_size="2x",
-            #     pause_threshold=1.0,
-            # )
-            
-            # if audio_bytes:
-            #     st.audio(audio_bytes, format="audio/wav")
+            # if wav_audio_data is not None:
+            #     st.audio(wav_audio_data, format='audio/wav')
                 
             #     if st.button("Classify Recorded Audio", type="primary"):
             #         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
-            #             tmp_file.write(audio_bytes)
+            #             tmp_file.write(wav_audio_data)
             #             temp_file_path = tmp_file.name
                     
             #         with st.spinner("Processing recorded audio..."):
-            #             prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
-            #                 temp_file_path, model, speaker_profiles, is_file=True, is_recording=True  
+            #             prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, rf_info = predict_audio(
+            #                 temp_file_path, model, speaker_profiles, is_file=True, is_recording=True 
             #             )
                     
-            #         process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info, model, col2)
+            #         process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, rf_info, model, col2)
             #         os.unlink(temp_file_path)
+            
+            audio_bytes = audio_recorder(
+                text="Click to record",
+                recording_color="#e8b62c",
+                neutral_color="#6aa36f",
+                icon_name="microphone-lines",
+                icon_size="2x",
+                pause_threshold=1.0,
+            )
+            
+            if audio_bytes:
+                st.audio(audio_bytes, format="audio/wav")
+                
+                if st.button("Classify Recorded Audio", type="primary"):
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as tmp_file:
+                        tmp_file.write(audio_bytes)
+                        temp_file_path = tmp_file.name
+                    
+                    with st.spinner("Processing recorded audio..."):
+                        prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info = predict_audio(
+                            temp_file_path, model, speaker_profiles, is_file=True, is_recording=True  
+                        )
+                    
+                    process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, neighbors_info, model, col2)
+                    os.unlink(temp_file_path)
 
 def process_prediction_results(prediction, probabilities, features, y_processed, sr_processed, speaker_id, similarity, rf_info, model, col2):
     """Process and display prediction results"""
