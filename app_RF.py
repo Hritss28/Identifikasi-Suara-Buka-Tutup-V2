@@ -149,7 +149,7 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
         return False, "unknown", 0.0
     
     if is_recording:
-        distance_threshold = 0.55
+        distance_threshold = 0.40
         gap_threshold = 0.02
         similarity_threshold = 0.85
         st.sidebar.info("**RECORDING MODE**")
