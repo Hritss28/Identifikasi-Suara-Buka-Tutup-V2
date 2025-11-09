@@ -73,10 +73,10 @@ st.markdown('<h1 class="main-header">🎵 Audio Classification: Suara Buka vs Tu
 @st.cache_resource
 def load_model():
     try:
-        model = joblib.load('saved_models/rf_model_buka_tutup.pkl')
+        model = joblib.load('saved_models/rf_model_buka_tutup_V1.pkl')
         return model, True
     except FileNotFoundError:
-        st.error("Model tidak ditemukan! Pastikan file 'saved_models/rf_model_buka_tutup.pkl' tersedia.")
+        st.error("Model tidak ditemukan! Pastikan file 'saved_models/rf_model_buka_tutup_V1.pkl' tersedia.")
         return None, False
 
 @st.cache_resource
