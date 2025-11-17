@@ -5,7 +5,6 @@ import pickle
 from pathlib import Path
 
 def extract_enhanced_speaker_features(y, sr=22050):
-    """Extract enhanced features untuk speaker identification yang lebih akurat"""
     
     # 1. MFCC features (13 coefficients)
     mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
@@ -39,7 +38,6 @@ def extract_enhanced_speaker_features(y, sr=22050):
     return speaker_features
 
 def preprocess_audio_for_speaker_v2(y, sr, target_sr=22050):
-    """Preprocess audio yang lebih baik untuk speaker verification"""
     if sr != target_sr:
         y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
         sr = target_sr
@@ -61,9 +59,7 @@ def preprocess_audio_for_speaker_v2(y, sr, target_sr=22050):
     
     return y, sr
 
-def create_speaker_profiles_v2():
-    """Membuat speaker profiles dengan algoritma yang diperbaiki"""
-    
+def create_speaker_profiles_v2():    
     speaker_samples_dir = "speaker_samples"
     
     if not os.path.exists(speaker_samples_dir):
@@ -102,10 +98,10 @@ def create_speaker_profiles_v2():
                     features_normalized = features / (np.linalg.norm(features) + 1e-8)
                     
                     speaker_features_list.append(features_normalized)
-                    print(f"    ✅ Features extracted: {len(features)} dimensions")
+                    print(f"    Features extracted: {len(features)} dimensions")
                     
                 except Exception as e:
-                    print(f"    ❌ Error processing {audio_file}: {e}")
+                    print(f"    Error processing {audio_file}: {e}")
         
         if speaker_features_list:
             # Rata-rata dari semua samples untuk speaker ini
@@ -119,24 +115,24 @@ def create_speaker_profiles_v2():
             variability = np.mean(feature_std)
             
             speaker_profiles[speaker_name] = avg_features_normalized
-            print(f"  ✅ Profile created for {speaker_name}")
+            print(f"  Profile created for {speaker_name}")
             print(f"     - Samples used: {len(speaker_features_list)}")
             print(f"     - Feature dimensions: {len(avg_features_normalized)}")
             print(f"     - Variability score: {variability:.4f}")
         else:
-            print(f"  ❌ No valid audio files found for {speaker_name}")
+            print(f"  No valid audio files found for {speaker_name}")
     
     # Save profiles
     if speaker_profiles:
         with open('speaker_profiles.pkl', 'wb') as f:
             pickle.dump(speaker_profiles, f)
         
-        print(f"\n🎉 Speaker profiles saved successfully!")
-        print(f"📊 Registered speakers: {list(speaker_profiles.keys())}")
-        print("💾 File saved as: speaker_profiles.pkl")
+        print(f"\nSpeaker profiles saved successfully!")
+        print(f"Registered speakers: {list(speaker_profiles.keys())}")
+        print("File saved as: speaker_profiles.pkl")
         
         # Test similarity antar speaker untuk quality check
-        print(f"\n🔍 Quality Check - Inter-speaker similarity:")
+        print(f"\nQuality Check - Inter-speaker similarity:")
         speakers = list(speaker_profiles.keys())
         if len(speakers) == 2:
             profile1 = speaker_profiles[speakers[0]]
@@ -144,11 +140,10 @@ def create_speaker_profiles_v2():
             similarity = np.dot(profile1, profile2)
             print(f"   Similarity between {speakers[0]} and {speakers[1]}: {similarity:.4f}")
             if similarity > 0.9:
-                print("   ⚠️  WARNING: Speakers too similar! Consider recording more diverse samples.")
+                print("   WARNING: Speakers too similar! Consider recording more diverse samples.")
             else:
-                print("   ✅ Good separation between speakers.")
+                print("   Good separation between speakers.")
     else:
-        print("\n❌ No speaker profiles created!")
-
+        print("\nNo speaker profiles created!")
 if __name__ == "__main__":
     create_speaker_profiles_v2()

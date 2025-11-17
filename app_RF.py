@@ -161,7 +161,7 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     
     test_features = extract_speaker_features(y, sr)
     
-    # Normalisasi features untuk konsistensi
+    # Normalisasi features
     test_features = test_features / (np.linalg.norm(test_features) + 1e-8)
     
     best_distance = float('inf')
@@ -172,13 +172,13 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     st.sidebar.write("🔍 **Speaker Verification Debug (Distance-based):**")
     
     for speaker_id, profile_features in speaker_profiles.items():
-        # Pastikan profile_features juga ternormalisasi
+        # profile_features normalisasi
         profile_normalized = profile_features / (np.linalg.norm(profile_features) + 1e-8)
         
         # Euclidean distance (semakin kecil = semakin mirip)
         distance = np.linalg.norm(test_features - profile_normalized)
         
-        # Cosine similarity (untuk referensi)
+        # Cosine similarity
         similarity = np.dot(test_features, profile_normalized)
         
         distances[speaker_id] = distance
@@ -202,19 +202,18 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
     st.sidebar.write(f"  - Gap Distance: {gap_distance:.6f} (harus > {gap_threshold})")
     st.sidebar.write(f"  - Best Similarity: {similarities[best_speaker]:.6f} (harus > {similarity_threshold})")
     
-    # DECISION dengan threshold yang berbeda
     check1 = best_distance < distance_threshold
     check2 = gap_distance > gap_threshold
     check3 = similarities[best_speaker] > similarity_threshold
     
     st.sidebar.write(f"**CHECKS:**")
-    st.sidebar.write(f"  - Distance Check: {'✅' if check1 else '❌'} ({best_distance:.3f} < {distance_threshold})")
-    st.sidebar.write(f"  - Gap Check: {'✅' if check2 else '❌'} ({gap_distance:.3f} > {gap_threshold})")  
-    st.sidebar.write(f"  - Similarity Check: {'✅' if check3 else '❌'} ({similarities[best_speaker]:.3f} > {similarity_threshold})")
+    st.sidebar.write(f"  - Distance Check: {'Done' if check1 else 'No'} ({best_distance:.3f} < {distance_threshold})")
+    st.sidebar.write(f"  - Gap Check: {'Done' if check2 else 'No'} ({gap_distance:.3f} > {gap_threshold})")  
+    st.sidebar.write(f"  - Similarity Check: {'Done' if check3 else 'No'} ({similarities[best_speaker]:.3f} > {similarity_threshold})")
     
     is_registered = check1 and check2 and check3
     
-    st.sidebar.write(f"**DECISION: {'✅ ACCEPTED' if is_registered else '❌ REJECTED'}**")
+    st.sidebar.write(f"**DECISION: {'ACCEPTED' if is_registered else 'REJECTED'}**")
     
     return is_registered, best_speaker, similarities[best_speaker]
 
@@ -288,10 +287,10 @@ def predict_audio(audio_data, model, speaker_profiles=None, is_file=True, is_rec
         st.sidebar.write(f"  - Similarity: {similarity:.6f}")
         
         if not is_registered:
-            st.sidebar.error("🚫 ACCESS DENIED - Speaker not registered")
+            st.sidebar.error("ACCESS DENIED - Speaker not registered")
             return "unregistered", [0.0, 0.0], None, y_processed, sr_processed, speaker_id, similarity, None
         
-        st.sidebar.success("✅ ACCESS GRANTED - Proceeding to classification")
+        st.sidebar.success("ACCESS GRANTED - Proceeding to classification")
 
         features = extract_only_selected_features(y_processed, sr_processed)
         
@@ -453,26 +452,24 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
             st.header("Classification Results")
             
             if speaker_id is not None:
-                st.subheader("🔐 Speaker Verification")
+                st.subheader("Speaker Verification")
                 if prediction == "unregistered":
                     st.markdown(f"""
                     <div class="warning-box">
-                        <h3>⛔ SPEAKER TIDAK TERDAFTAR</h3>
+                        <h3>SPEAKER TIDAK TERDAFTAR</h3>
                         <p><strong>Similarity Score: {similarity:.3f}</strong> (Threshold: 0.65)</p>
-                        <p>🚫 Suara tidak dikenali sebagai pengguna terdaftar</p>
-                        <p>🔒 Akses ditolak untuk keamanan sistem</p>
+                        <p>Suara tidak dikenali sebagai pengguna terdaftar</p>
+                        <p>Akses ditolak untuk keamanan sistem</p>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Tambahkan informasi debug
-                    with st.expander("🔍 Debug Information"):
+                    with st.expander("Debug Information"):
                         st.write(f"**Detected Speaker:** {speaker_id}")
                         st.write(f"**Similarity Score:** {similarity:.6f}")
                         st.write(f"**Required Threshold:** 0.65")
                         st.write(f"**Status:** Score terlalu rendah - kemungkinan bukan speaker terdaftar")
                     return
                 else:
-                    # Tentukan confidence level
                     if similarity > 0.85:
                         confidence_level = "🟢 High Confidence"
                         confidence_color = "success"
@@ -489,25 +486,23 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                     elif confidence_color == "warning":
                         st.warning(f"**Speaker:** {speaker_id} | Similarity: {similarity:.3f} | {confidence_level}")
                     
-            # Classification results hanya jika speaker terverifikasi
             confidence = max(probabilities) * 100
             
             if prediction.lower() == 'buka':
                 st.markdown(f"""
                 <div class="prediction-box prediction-buka">
-                    <h2>🔓 BUKA</h2>
+                    <h2>BUKA</h2>
                     <p><strong>Confidence: {confidence:.1f}%</strong></p>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
                 <div class="prediction-box prediction-tutup">
-                    <h2>🔒 TUTUP</h2>
+                    <h2>TUTUP</h2>
                     <p><strong>Confidence: {confidence:.1f}%</strong></p>
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Random Forest specific information
             if rf_info:
                 st.subheader("Random Forest Decision Details")
                 st.info(f"""
@@ -517,7 +512,6 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                 - **Voting Strategy:** Majority voting across all trees
                 """)
                 
-                # Feature importance visualization
                 st.subheader("Feature Importance")
                 importance_df = pd.DataFrame.from_dict(rf_info['feature_importance'], orient='index', columns=['Importance'])
                 importance_df = importance_df.sort_values('Importance', ascending=True)
@@ -532,7 +526,6 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                 )
                 st.plotly_chart(fig, use_container_width=True)
             
-            # Probability breakdown
             st.subheader("Prediction Probabilities")
             prob_df = pd.DataFrame({
                 'Class': model.classes_,
@@ -551,8 +544,7 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
             fig.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
             fig.update_layout(showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
-            
-            # Feature details
+
             if features:
                 st.subheader("Extracted Features (Raw for RF)")
                 features_df = pd.DataFrame([features]).T
@@ -560,7 +552,6 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                 st.dataframe(features_df, use_container_width=True)
                 st.info("Note: Random Forest menggunakan raw features tanpa scaling")
         
-        # Audio analysis
         st.header("🎵 Audio Analysis")
         if y_processed is not None:
             waveform_fig = create_waveform_plot(
