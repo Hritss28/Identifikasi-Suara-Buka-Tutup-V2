@@ -192,7 +192,6 @@ def verify_speaker(y, sr, speaker_profiles, is_recording=False):
             best_distance = distance
             best_speaker = speaker_id
     
-    # Validasi berdasarkan jarak
     sorted_distances = sorted(distances.values())
     gap_distance = sorted_distances[1] - sorted_distances[0] if len(sorted_distances) > 1 else 0.1
 
@@ -471,13 +470,13 @@ def process_prediction_results(prediction, probabilities, features, y_processed,
                     return
                 else:
                     if similarity > 0.85:
-                        confidence_level = "🟢 High Confidence"
+                        confidence_level = "High Confidence"
                         confidence_color = "success"
                     elif similarity > 0.75:
-                        confidence_level = "🟡 Medium Confidence" 
+                        confidence_level = "Medium Confidence" 
                         confidence_color = "warning"
                     else:
-                        confidence_level = "🔴 Low Confidence"
+                        confidence_level = "Low Confidence"
                         confidence_color = "error"
                     
                     if confidence_color == "success":
